@@ -1,0 +1,11 @@
+--2019-09-28 10:42:59--  http://alegeri.roaep.ro/wp-content/plugins/aep/aep_data.php?name=v1_euro_Judet_Lista
+Resolving alegeri.roaep.ro (alegeri.roaep.ro)... 213.177.15.8
+Connecting to alegeri.roaep.ro (alegeri.roaep.ro)|213.177.15.8|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 101 [application/json]
+Saving to: ‘aep_data.php?name=v1_euro_Judet_Lista’
+
+           aep_data.p   0%[                         ]       0  --.-KB/s               aep_data.php?name=v1_ 100%[========================>]     101  --.-KB/s    in 0s      
+
+2019-09-28 10:43:00 (4.35 MB/s) - ‘aep_data.php?name=v1_euro_Judet_Lista’ saved [101/101]
+
