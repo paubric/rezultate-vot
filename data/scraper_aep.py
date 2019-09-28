@@ -12,6 +12,8 @@ class ElectionData(Item):
     url = Field()
     id = Field()
     general_election_data = Field()
+    general_results_data = Field()
+
 
 class GeneralElectionData(Item):
     precincts = Field()
@@ -20,6 +22,14 @@ class GeneralElectionData(Item):
     voting_citizens = Field()
     valid_votes = Field()
     null_votes = Field()
+
+
+class GeneralResultsData(Item):
+    party = Field()
+    candidates = Field()
+    votes = Field()
+    percent = Field()
+    mandates = Field()
 
 
 class ElectionDataSpider(scrapy.Spider):
@@ -42,7 +52,8 @@ class ElectionDataSpider(scrapy.Spider):
             id = str(election['id'][0])
             type = election['type'][0]
 
-            year = [e for e in re.split(r'[/-]', election['year'][0]) if len(e) == 4]
+            year = [e for e in re.split(
+                r'[/-]', election['year'][0]) if len(e) == 4]
             election['year'] = year
 
             if type == 'europarlamentare':
@@ -56,7 +67,7 @@ class ElectionDataSpider(scrapy.Spider):
             else:
                 general_data_url = 'http://alegeri.roaep.ro/wp-content/plugins/aep/aep_data.php?name=v1_parl_Tara_Sumar&parameter=' + id + '&parameter=5'
 
-            yield scrapy.Request(general_data_url, callback=self.parse_general_election_data, meta={'election': election})
+            yield scrapy.Request(general_data_url, callback=self.parse_general_election_data, meta={'election': election, 'general_data_url': general_data_url})
 
     def parse_general_election_data(self, response):
         complete_general_election_data = []
@@ -79,6 +90,28 @@ class ElectionDataSpider(scrapy.Spider):
         election = response.meta['election']
         election['general_election_data'] = complete_general_election_data
 
-        print(election)
+        general_data_url = response.meta['general_data_url']
+        general_data_url = general_data_url.replace('Sumar', 'Voturi')
 
-        yield {'election': election}
+        yield scrapy.Request(general_data_url, callback=self.parse_general_results_data, meta={'election': election, 'general_data_url': general_data_url})
+
+    def parse_general_results_data(self, response):
+        complete_general_results_data = []
+        data = json.loads(response.body)
+
+        for party in data:
+            general_results_data_loader = ItemLoader(
+                item=GeneralResultsData())
+            general_results_data_loader.add_value(
+                'party', party['AfilierePolitica'])
+            general_results_data_loader.add_value(
+                'votes', party['Voturi'])
+            general_results_data_loader.add_value(
+                'percent', party['Procent'])
+            complete_general_results_data += [
+                general_results_data_loader.load_item()]
+
+        election = response.meta['election']
+        election['general_results_data'] = complete_general_results_data
+
+        yield election
